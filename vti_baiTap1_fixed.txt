@@ -1,0 +1,71 @@
+create database db_testing_system;
+use db_testing_system;
+
+create table department(
+department_id int auto_increment,
+department_name varchar(50)
+);
+
+create table positions(
+account_id int auto_increment,
+email varchar(20),
+username varchar(20),
+FullName varchar(30),
+department_id int,
+position_id varchar(20),
+create_date date
+);
+
+create table groups_in_department(
+group_id int auto_increment,
+group_name varchar(20),
+creator_id int,
+create_date date
+);
+
+create table group_account(
+group_id int,
+account_id int,
+join_date int
+);
+
+create table type_question(
+type_id int auto_increment,
+type_name enum('Essay', 'Multiple-Choice')
+);
+
+create table category_question(
+category_id int auto_increment,
+category_name enum('Java', '.NET', 'SQL', 'Postman', 'Ruby','Rust')
+);
+
+create table question(
+question_id int auto_increment,
+content varchar(60),
+category_id int,
+type_id int,
+creator_id int,
+create_date date
+);
+
+create table answer(
+answer_id int auto_increment,
+content varchar(60),
+question_id int,
+is_correct varchar(50)
+);
+
+create table exam(
+exam_id int auto_increment,
+code_of_exam int,
+title varchar(20),
+category_id int,
+duration int,
+creator_id int,
+create_date date
+);
+
+create table exam_question(
+exam_id int,
+question_id int
+);
