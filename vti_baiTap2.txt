@@ -1,0 +1,191 @@
+
+drop database if exists db_testing_system;
+create database db_testing_system;
+use db_testing_system;
+
+drop table if exists department;
+CREATE TABLE department (
+    department_id INT AUTO_INCREMENT PRIMARY KEY,
+    department_name VARCHAR(50) NOT NULL
+);
+drop table if exists positions;
+CREATE TABLE positions (
+    position_id INT AUTO_INCREMENT PRIMARY KEY,
+    position_name VARCHAR(20) NOT NULL
+);
+drop table if exists account_in_department;
+CREATE TABLE account_in_department (
+    account_id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(20) NOT NULL unique,
+    username VARCHAR(20) NOT NULL unique,
+    FullName VARCHAR(30) NOT NULL,
+    department_id INT,
+    position_id int,
+    create_date DATE default(current_date()),
+    foreign key (department_id) references department(department_id),
+    foreign key (position_id) references positions(position_id)
+);
+drop table if exists groups_in_department;
+CREATE TABLE groups_in_department (
+    group_id INT AUTO_INCREMENT primary key,
+    group_name VARCHAR(20) not null,
+    creator_id INT,
+    create_date DATE default(current_date()),
+    foreign key (creator_id) references account_in_department(account_id)
+);
+drop table if exists group_account;
+CREATE TABLE group_account (
+    group_id INT,
+    account_id INT,
+    join_date date default(current_date()),
+    primary key (group_id, account_id),
+    foreign key (account_id) references account_in_department(account_id),
+	foreign key (group_id) references groups_in_department(group_id)
+    
+);
+drop table if exists type_question;
+CREATE TABLE type_question (
+    type_id INT AUTO_INCREMENT PRIMARY KEY,
+    type_name ENUM('Essay', 'Multiple-Choice') NOT NULL
+);
+drop table if exists category_question;
+CREATE TABLE category_question (
+    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_name ENUM('Java', '.NET', 'SQL', 'Postman', 'Ruby', 'Rust') NOT NULL
+);
+drop table if exists question;
+CREATE TABLE question (
+    question_id INT AUTO_INCREMENT primary key,
+    content VARCHAR(60) not null,
+    category_id INT,
+    type_id INT,
+    creator_id INT,
+    create_date DATE default(current_date()),
+	foreign key (creator_id) references account_in_department(account_id),
+    foreign key (type_id) references type_question(type_id),
+    foreign key (category_id) references category_question(category_id)
+
+);
+drop table if exists answer;
+CREATE TABLE answer (
+    answer_id INT AUTO_INCREMENT PRIMARY KEY,
+    content VARCHAR(60),
+    question_id INT,
+    is_correct BOOL NOT NULL,
+    FOREIGN KEY (question_id)
+        REFERENCES question (question_id)
+);
+
+drop table if exists exam;
+CREATE TABLE exam (
+    exam_id INT AUTO_INCREMENT primary key,
+    code_of_exam INT,
+    title VARCHAR(20),
+    category_id INT,
+    duration INT,
+    creator_id INT,
+    create_date DATE default(current_date()),
+    foreign key (category_id) references category_question(category_id),
+	foreign key (creator_id) references account_in_department(account_id)
+);
+
+drop table if exists exam_question;
+CREATE TABLE exam_question (
+    exam_id INT,
+    question_id INT,
+    PRIMARY KEY (exam_id , question_id),
+    FOREIGN KEY (exam_id)
+        REFERENCES exam (exam_id),
+    FOREIGN KEY (question_id)
+        REFERENCES question (question_id)
+);
+
+INSERT INTO department (department_name) VALUES
+('Sales'),
+('Marketing'),
+('Engineering'),
+('HR'),
+('Finance');
+
+INSERT INTO positions (position_name) VALUES
+('Developer'),
+('Tester'),
+('Manager'),
+('Intern'),
+('Leader');
+
+INSERT INTO account_in_department (email, username, FullName, department_id, position_id)
+VALUES
+('a1@mail.com', 'user1', 'Nguyen Van A', 1, 1),
+('a2@mail.com', 'user2', 'Tran Thi B', 2, 2),
+('a3@mail.com', 'user3', 'Le Van C', 3, 3),
+('a4@mail.com', 'user4', 'Pham Thi D', 4, 4),
+('a5@mail.com', 'user5', 'Vo Van E', 5, 5);
+
+INSERT INTO groups_in_department (group_name, creator_id)
+VALUES
+('Group A', 1),
+('Group B', 2),
+('Group C', 3),
+('Group D', 4),
+('Group E', 5);
+
+INSERT INTO group_account (group_id, account_id)
+VALUES
+(1, 1),
+(1, 2),
+(2, 3),
+(3, 4),
+(4, 5);
+
+INSERT INTO type_question (type_name)
+VALUES
+('Essay'),
+('Multiple-Choice'),
+('Essay'),
+('Multiple-Choice'),
+('Essay');
+
+INSERT INTO category_question (category_name)
+VALUES
+('Java'),
+('.NET'),
+('SQL'),
+('Postman'),
+('Ruby');
+
+INSERT INTO question (content, category_id, type_id, creator_id)
+VALUES
+('What is Java?', 1, 1, 1),
+('Explain OOP concepts.', 1, 2, 2),
+('What is SQL JOIN?', 3, 2, 3),
+('What is REST API?', 4, 1, 4),
+('What is Ruby class?', 5, 1, 5);
+
+INSERT INTO answer (content, question_id, is_correct)
+VALUES
+('Java is a programming language.', 1, TRUE),
+('OOP includes inheritance.', 2, TRUE),
+('JOIN combines tables.', 3, TRUE),
+('REST uses HTTP methods.', 4, TRUE),
+('Ruby class defines objects.', 5, TRUE);
+
+INSERT INTO exam (code_of_exam, title, category_id, duration, creator_id)
+VALUES
+(101, 'Java Exam', 1, 60, 1),
+(102, 'NET Exam', 2, 45, 2),
+(103, 'SQL Exam', 3, 30, 3),
+(104, 'API Exam', 4, 40, 4),
+(105, 'Ruby Exam', 5, 50, 5);
+
+INSERT INTO exam (code_of_exam, title, category_id, duration, creator_id)
+VALUES
+(101, 'Java Exam', 1, 60, 1),
+(102, 'NET Exam', 2, 45, 2),
+(103, 'SQL Exam', 3, 30, 3),
+(104, 'API Exam', 4, 40, 4),
+(105, 'Ruby Exam', 5, 50, 5);
+
+
+
+
