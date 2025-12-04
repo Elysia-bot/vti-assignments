@@ -1,0 +1,89 @@
+SELECT 
+    *
+FROM
+    department;
+
+SELECT 
+    department_id AS 'sales id'
+FROM
+    department
+WHERE
+    department_name = 'Sales';
+
+SELECT 
+    *
+FROM
+    accounts
+WHERE
+    CHAR_LENGTH(full_name) = (SELECT 
+            MAX(CHAR_LENGTH(full_name))
+        FROM
+            accounts);
+
+SELECT 
+    *
+FROM
+    accounts
+WHERE
+    (CHAR_LENGTH(full_name) = (SELECT 
+            MAX(CHAR_LENGTH(full_name))
+        FROM
+            accounts))
+        AND department_id = 3;
+
+SELECT 
+    g.group_name
+FROM
+    group_account ga
+        JOIN
+    `groups` g ON ga.group_id = g.group_id
+WHERE
+    ga.join_date < '2019-12-20';
+
+SELECT 
+    question_id
+FROM
+    answer
+GROUP BY question_id
+HAVING COUNT(answer_id) >= 4;
+
+SELECT 
+    code_of_exam
+FROM
+    exam
+WHERE
+    duration > 59
+        AND create_date < '2019-12-20';
+
+SELECT 
+    group_name
+FROM
+    `groups`
+ORDER BY create_date DESC
+LIMIT 5;
+
+SELECT 
+    COUNT(*)
+FROM
+    accounts
+WHERE
+    department_id = 2;
+
+SELECT 
+    *
+FROM
+    accounts
+WHERE
+    full_name LIKE 'D%o';
+
+DELETE FROM exam 
+WHERE
+    create_date < '2019-12-20';
+
+DELETE FROM question 
+WHERE
+    content LIKE 'câu hỏi%'
+
+update accounts set full_name = 'Nguyễn Bá Lộc', email = 'loc.nguyenba@vti.com.vn' where account_id = 5;
+
+update group_account set group_id = 4 where account_id = 5;
