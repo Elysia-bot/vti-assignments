@@ -1,0 +1,151 @@
+#bài tập mới
+#Viết lệnh để lấy ra danh sách nhân viên và thông tin phòng ban của họ
+SELECT accounts.*, department.department_name
+FROM accounts 
+JOIN department ON accounts.department_id = department.department_id;
+
+#Viết lệnh để lấy ra thông tin các account được tạo sau ngày 20/12/2010
+SELECT *
+FROM accounts
+WHERE create_date > '2010-12-20';
+
+#Viết lệnh để lấy ra tất cả các developer
+SELECT accounts.*
+FROM accounts
+JOIN positions ON accounts.position_id = positions.position_id
+WHERE positions.position_name = 'Developer';
+
+#Viết lệnh để lấy ra danh sách các phòng ban có >3 nhân viên
+SELECT department.department_id, department.department_name, COUNT(*) AS so_nhan_vien
+FROM accounts
+JOIN department ON accounts.department_id = department.department_id
+GROUP BY department.department_id
+HAVING COUNT(*) > 3;
+
+#Viết lệnh để lấy ra danh sách câu hỏi được sử dụng trong đề thi nhiều nhất
+SELECT question.question_id, question.content, COUNT(exam_question.exam_id) AS so_lan_su_dung
+FROM exam_question
+JOIN question ON exam_question.question_id = question.question_id
+GROUP BY question.question_id
+ORDER BY COUNT(exam_question.exam_id) DESC
+LIMIT 1;
+
+#Thông kê mỗi category Question được sử dụng trong bao nhiêu Question
+SELECT category_question.category_name, COUNT(question.question_id) AS so_question
+FROM category_question
+LEFT JOIN question ON category_question.category_id = question.category_id
+GROUP BY category_question.category_id;
+
+#Thông kê mỗi Question được sử dụng trong bao nhiêu Exam
+SELECT question.question_id, question.content, COUNT(exam_question.exam_id) AS so_exam
+FROM question
+LEFT JOIN exam_question ON question.question_id = exam_question.question_id
+GROUP BY question.question_id;
+
+#Lấy ra Question có nhiều câu trả lời nhất
+SELECT question.question_id, question.content, COUNT(answer.answer_id) AS so_answer
+FROM question
+LEFT JOIN answer ON question.question_id = answer.question_id
+GROUP BY question.question_id
+ORDER BY COUNT(answer.answer_id) DESC
+LIMIT 1;
+
+#Thống kê số lượng account trong mỗi group
+SELECT `groups`.group_name, COUNT(group_account.account_id) AS so_account
+FROM `groups`
+LEFT JOIN group_account ON `groups`.group_id = group_account.group_id
+GROUP BY `groups`.group_id;
+
+#Tìm chức vụ có ít người nhất
+SELECT positions.position_name, COUNT(accounts.account_id) AS so_nguoi
+FROM positions
+LEFT JOIN accounts ON positions.position_id = accounts.position_id
+GROUP BY positions.position_id
+ORDER BY COUNT(accounts.account_id) ASC
+LIMIT 1;
+
+#Thống kê mỗi phòng ban có bao nhiêu dev, test, scrum master, PM
+SELECT 
+    department.department_name,
+    SUM(positions.position_name = 'Developer') AS so_dev,
+    SUM(positions.position_name = 'Tester') AS so_test,
+    SUM(positions.position_name = 'Manager') AS so_manager,
+    SUM(positions.position_name = 'Team Lead') AS so_teamlead
+FROM accounts
+JOIN department ON accounts.department_id = department.department_id
+JOIN positions ON accounts.position_id = positions.position_id
+GROUP BY department.department_id;
+
+#Lấy thông tin chi tiết của câu hỏi bao gồm: thông tin cơ bản của question, loại câu hỏi, ai là người tạo ra câu hỏi, câu trả lời là gì, …
+SELECT 
+    question.question_id,
+    question.content,
+    category_question.category_name,
+    type_question.type_name,
+    accounts.full_name AS creator,
+    answer.answer_id,
+    answer.content AS answer_content,
+    answer.is_correct
+FROM question
+JOIN category_question ON question.category_id = category_question.category_id
+JOIN type_question ON question.type_id = type_question.type_id
+JOIN accounts ON question.creator_id = accounts.account_id
+LEFT JOIN answer ON question.question_id = answer.question_id;
+
+#Lấy ra số lượng câu hỏi của mỗi loại tự luận hay trắc nghiệm
+SELECT type_question.type_name, COUNT(question.question_id) AS so_cau
+FROM type_question
+LEFT JOIN question ON type_question.type_id = question.type_id
+GROUP BY type_question.type_id;
+
+#Lấy ra group không có account nào
+SELECT `groups`.*
+FROM `groups`
+LEFT JOIN group_account ON `groups`.group_id = group_account.group_id
+WHERE group_account.account_id IS NULL;
+
+#Lấy ra question không có answer nào.
+SELECT question.*
+FROM question
+LEFT JOIN answer ON question.question_id = answer.question_id
+WHERE answer.answer_id IS NULL;
+
+#Lấy các account thuộc nhóm thứ 1 (a)
+SELECT account_id
+FROM group_account
+WHERE group_id = 1;
+
+#Lấy các account thuộc nhóm thứ 2 (b)
+SELECT account_id
+FROM group_account
+WHERE group_id = 2;
+
+#Ghép 2 kết quả từ câu a) và câu b) sao cho không có record nào trùng nhau
+SELECT account_id FROM group_account WHERE group_id = 1
+UNION
+SELECT account_id FROM group_account WHERE group_id = 2;
+
+#Lấy các group có lớn hơn 5 thành viên (a)
+SELECT group_id
+FROM group_account
+GROUP BY group_id
+HAVING COUNT(account_id) > 5;
+
+#Lấy các group có nhỏ hơn 7 thành viên (b)
+SELECT group_id
+FROM group_account
+GROUP BY group_id
+HAVING COUNT(account_id) < 7;
+
+#Ghép 2 kết quả từ câu a) và câu b).
+SELECT group_id
+FROM group_account
+GROUP BY group_id
+HAVING COUNT(account_id) > 5
+
+UNION
+
+SELECT group_id
+FROM group_account
+GROUP BY group_id
+HAVING COUNT(account_id) < 7;
