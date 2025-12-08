@@ -24,21 +24,21 @@ FROM
 #Question 2: Tạo view có chứa thông tin các account tham gia vào nhiều group nhất
 drop view if exists account_join_most_group;
 CREATE VIEW account_join_most_group AS
-    SELECT 
-        a.account_id, COUNT(ga.group_id)
+SELECT 
+    a.account_id, COUNT(ga.group_id)
+FROM
+    accounts a
+        INNER JOIN
+    group_account ga ON a.account_id = ga.account_id
+GROUP BY a.account_id
+HAVING COUNT(ga.group_id) = (SELECT 
+        MAX(cnt)
     FROM
-        accounts a
-            JOIN
-        group_account ga ON a.account_id = ga.account_id
-    GROUP BY a.account_id
-    HAVING COUNT(ga.group_id) = (SELECT 
-            MAX(cnt)
+        (SELECT 
+            COUNT(*) AS cnt
         FROM
-            (SELECT 
-                COUNT(*) AS cnt
-            FROM
-                group_account
-            GROUP BY account_id) AS x);
+            group_account
+        GROUP BY account_id) AS x);
 
 #Question 3: Tạo view có chứa câu hỏi có những content quá dài (content quá 300 từ được coi là quá dài) và xóa nó đi
 drop view if exists long_content_questions;
@@ -54,29 +54,29 @@ delete from question q where char_length(q.content) > 300;
 #Question 4: Tạo view có chứa danh sách các phòng ban có nhiều nhân viên nhất
 drop view if exists department_with_most_employee;
 CREATE VIEW department_with_most_employee AS
-    SELECT 
-        d.*, COUNT(a.account_id)
+SELECT 
+    d.*, COUNT(a.account_id)
+FROM
+    department d
+        INNER JOIN
+    accounts a ON a.department_id = d.department_id
+GROUP BY a.department_id
+HAVING COUNT(a.account_id) = (SELECT 
+        MAX(cnt)
     FROM
-        department d
-            JOIN
-        accounts a ON a.department_id = d.department_id
-    GROUP BY a.department_id
-    HAVING COUNT(a.account_id) = (SELECT 
-            MAX(cnt)
+        (SELECT 
+            COUNT(*) AS cnt
         FROM
-            (SELECT 
-                COUNT(*) AS cnt
-            FROM
-                accounts a
-            GROUP BY a.department_id) AS x);
+            accounts a
+        GROUP BY a.department_id) AS x);
 #Question 5: Tạo view có chứa tất các các câu hỏi do user họ Nguyễn tạo.
 drop view if exists question_by_nguyen;
 CREATE VIEW question_by_nguyen AS
-    SELECT 
-        q.*
-    FROM
-        question q
-            JOIN
-        accounts a ON q.creator_id = a.account_id
-    WHERE
-        a.full_name LIKE 'Nguyễn%'
+SELECT 
+    q.*
+FROM
+    question q
+        INNER JOIN
+    accounts a ON q.creator_id = a.account_id
+WHERE
+    a.full_name LIKE 'Nguyễn%'
