@@ -1,0 +1,243 @@
+#Question 1: Tạo store để người dùng nhập vào tên phòng ban và in ra tất cả các account thuộc phòng ban đó.
+
+drop procedure if exists accounts_of_department;
+DELIMITER $$
+create procedure accounts_of_department (in in_department_name varchar(50))
+begin
+select a.* 
+from accounts a
+inner join department d on a.department_id = d.department_id
+where d.department_name = in_department_name
+;
+end $$
+delimiter ;
+
+CALL accounts_of_department('HR');
+
+#Question 2: Tạo store để in ra số lượng account trong mỗi group.
+DROP PROCEDURE IF EXISTS nums_of_account_in_group;
+DELIMITER $$
+
+CREATE PROCEDURE nums_of_account_in_group()
+BEGIN
+    SELECT 
+        g.group_name,
+        COUNT(ga.account_id) AS number_of_accounts
+    FROM group_account ga
+    INNER JOIN `groups` g ON g.group_id = ga.group_id
+    GROUP BY ga.group_id, g.group_name;
+END $$
+
+DELIMITER ;
+
+call nums_of_account_in_group();
+
+#Question 3: Tạo store để thống kê mỗi type question có bao nhiêu question được tạo trong tháng hiện tại.
+drop procedure if exists question_in_type_created_this_month;
+delimiter $$
+create procedure question_in_type_created_this_month()
+begin
+select q.type_id,
+count(q.question_id) as number_of_questions
+from question q
+where month(q.create_date) = month(current_date())
+and year(q.create_date) = year(current_date())
+group by q.type_id;
+end $$ 
+delimiter ;
+
+#Question 4: Tạo store để trả ra id của type question có nhiều câu hỏi nhất.
+drop procedure if exists id_of_most_question_in_type_question;
+delimiter $$
+create procedure id_of_most_question_in_type_question(out out_type_id int)
+
+begin
+SELECT 
+    q.type_id into out_type_id
+FROM
+    question q
+GROUP BY q.type_id
+HAVING COUNT(q.question_id) = (SELECT 
+        MAX(cnt)
+    FROM
+        (SELECT 
+            COUNT(question_id) AS cnt
+        FROM
+            question
+        GROUP BY type_id)as x);
+end $$ 
+delimiter ;
+
+#Question 5: Sử dụng store ở question 4 để tìm ra tên của type question.
+call id_of_most_question_in_type_question(@id);
+select tq.type_name 
+from type_question tq
+where tq.type_id = @id;
+
+#Question 6: Viết 1 store cho phép người dùng nhập vào 1 chuỗi và trả về group có tên chứa chuỗi của người dùng nhập vào hoặc trả về user có username chứa chuỗi của người dùng nhập vào.
+drop procedure if exists group_or_user_contain_string;
+delimiter $$
+create procedure group_or_user_contain_string(in input_string varchar(50))
+begin
+select g.group_id 
+from `groups` g
+where g.group_name like CONCAT('%', input_string, '%');
+select a.account_id 
+from accounts a
+where a.username like CONCAT('%', input_string, '%');
+end $$ 
+delimiter ;
+
+call group_or_user_contain_string('us');
+
+#Question 7: Viết 1 store cho phép người dùng nhập vào thông tin fullName, email và trong store sẽ tự động gán:
+#username sẽ giống email nhưng bỏ phần @..mail đi
+#positionID: sẽ có default là developer
+#departmentID: sẽ được cho vào 1 phòng chờ
+#Sau đó in ra kết quả tạo thành công
+drop procedure if exists add_account;
+delimiter $$
+create procedure add_account(in in_full_name varchar(20),in_email varchar(50))
+begin
+    DECLARE new_username VARCHAR(50);
+    DECLARE default_position_id INT DEFAULT 3; 
+    DECLARE waiting_department_id INT DEFAULT 7; 
+
+    
+    SET new_username = SUBSTRING_INDEX(in_email, '@', 1);
+
+    INSERT INTO accounts(full_name, email, username, position_id, department_id)
+    VALUES (in_full_name, in_email, new_username, default_position_id, waiting_department_id);
+
+    SELECT 'Tạo account thành công!' AS message,
+           new_username AS created_username;
+end $$ 
+delimiter ;
+
+CALL add_account('Nguyễn Văn A', 'nguyenvana@gmail.com');
+
+#Question 8: Viết 1 store cho phép người dùng nhập vào Essay hoặc Multiple-Choice
+#để thống kê câu hỏi essay hoặc multiple-choice nào có content dài nhất
+drop procedure if exists longest_content;
+delimiter $$
+create procedure longest_content(in in_types ENUM('Essay', 'Multiple-Choice'))
+begin
+select q.question_id
+from question q
+inner join type_question tq on q.type_id = tq.type_id
+where tq.type_name = in_types
+and char_length(q.content) =(
+select max(char_length(q2.content))
+from question q2 
+inner join type_question tq2 on q2.type_id = tq2.type_id
+where tq2.type_name = in_types
+);
+end $$ 
+delimiter ;
+
+call longest_content('Essay');
+
+#Question 9: Viết 1 store cho phép người dùng xóa exam dựa vào ID
+drop procedure if exists delete_exam_by_id;
+delimiter $$
+create procedure delete_exam_by_id(in in_exam_id int)
+begin
+delete from exam e where e.exam_id = in_exam_id;
+end $$ 
+delimiter ;
+
+#Question 10: Tìm ra các exam được tạo từ 3 năm trước và xóa các exam đó đi (sử
+#dụng store ở câu 9 để xóa)
+#Sau đó in số lượng record đã remove từ các table liên quan trong khi
+#removing
+DROP PROCEDURE IF EXISTS delete_exam_over_3ys;
+DELIMITER $$
+
+CREATE PROCEDURE delete_exam_over_3ys()
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE v_exam_id INT;
+
+    -- cursor lấy exam_id cần xóa
+    DECLARE cur CURSOR FOR 
+        SELECT exam_id
+        FROM exam
+        WHERE TIMESTAMPDIFF(YEAR, create_date, CURRENT_DATE()) >= 3;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO v_exam_id;
+
+        IF done = 1 THEN 
+            LEAVE read_loop;
+        END IF;
+
+        CALL delete_exam_by_id(v_exam_id);
+    END LOOP;
+
+    CLOSE cur;
+
+    SELECT 'Đã xóa tất cả exam > 3 năm' AS message;
+END $$
+
+DELIMITER ;
+
+call delete_exam_over_3ys();
+
+#Question 11: Viết store cho phép người dùng xóa phòng ban bằng cách người dùng
+#nhập vào tên phòng ban và các account thuộc phòng ban đó sẽ được
+#chuyển về phòng ban default là phòng ban chờ việc
+drop procedure if exists delete_department_by_name;
+delimiter $$
+create procedure delete_department_by_name(in in_department_name varchar(50))
+begin
+update accounts a inner join department d on a.department_id = d.department_id
+set a.department_id = 7
+where d.department_name = in_department_name;
+DELETE FROM department
+    WHERE department_name = in_department_name;
+end $$ 
+delimiter ;
+
+#Question 12: Viết store để in ra mỗi tháng có bao nhiêu câu hỏi được tạo trong năm nay
+drop procedure if exists question_created_each_month_this_year;
+delimiter $$
+create procedure question_created_each_month_this_year()
+begin
+select count(q.question_id) as question_number
+from question q
+WHERE YEAR(q.create_date) = YEAR(current_date())
+GROUP BY YEAR(q.create_date);
+end $$ 
+delimiter ;
+
+#Question 13: Viết store để in ra mỗi tháng có bao nhiêu câu hỏi được tạo trong 6 
+#tháng gần đây nhất
+#(Nếu tháng nào không có thì sẽ in ra là "không có câu hỏi nào trong tháng")
+
+DROP PROCEDURE IF EXISTS question_created_within_6_months;
+DELIMITER $$
+
+CREATE PROCEDURE question_created_within_6_months()
+BEGIN
+    WITH months AS (
+        SELECT DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL n MONTH), '%Y-%m') AS ym
+        FROM (SELECT 0 n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5) x
+    )
+    SELECT 
+        m.ym AS month,
+        COUNT(q.question_id) AS total_questions,
+        IF(COUNT(q.question_id) = 0, 'Không có câu hỏi nào trong tháng', 'Có câu hỏi') AS note
+    FROM months m
+    LEFT JOIN question q 
+        ON DATE_FORMAT(q.create_date, '%Y-%m') = m.ym
+    GROUP BY m.ym
+    ORDER BY m.ym DESC;
+END $$
+
+DELIMITER ;
+
+call question_created_within_6_months();
