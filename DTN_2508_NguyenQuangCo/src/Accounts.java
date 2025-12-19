@@ -6,8 +6,8 @@ public class Accounts {
     String email;
     String userName;
     String fullName;
-    int departmentID;
-    int positionID;
+    Department department;
+    Position position;
     Date createDate;
     //trying to make constructor
     /*public Accounts(String email, String userName, String fullName, int department, int position, Date createDate) {

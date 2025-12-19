@@ -1,12 +1,14 @@
+import java.util.ArrayList;
 import java.util.Date;
 
 public class Group {
     static int counter = 0;
-    int id;
+    int groupID;
     String name;
-    int creatorID;
+    Accounts creatorID;
     Date createDate;
+    ArrayList<Accounts> accounts = new ArrayList<>();
     public Group() {
-        this.id = ++counter;
+        this.groupID = ++counter;
     }
 }

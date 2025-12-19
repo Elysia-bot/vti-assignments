@@ -1,8 +1,8 @@
 public class Position {
     static int counter = 0;
-    int id;
+    int positionID;
     positionName name;
     public Position() {
-        this.id = ++counter;
+        this.positionID = ++counter;
     }
 }

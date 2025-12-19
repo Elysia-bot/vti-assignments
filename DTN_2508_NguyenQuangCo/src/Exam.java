@@ -4,9 +4,9 @@ public class Exam {
     static int counter = 0;
     int examID;
     String code;
-    int categoryID;
+    CategoryQuestion categoryID;
     int duration;
-    int creatorID;
+    Accounts creatorID;
     String title;
     Date createDate;
     public Exam(){
