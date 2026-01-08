@@ -1,0 +1,13 @@
+package DTN2508.com.vti.entity;
+
+public class HighSchoolStudent extends StudentAbstract {
+
+    private String clazz;
+    private String desiredUniversity;
+
+    public HighSchoolStudent(int id, String name, String clazz, String desiredUniversity) {
+        super(id, name);
+        this.clazz = clazz;
+        this.desiredUniversity = desiredUniversity;
+    }
+}
