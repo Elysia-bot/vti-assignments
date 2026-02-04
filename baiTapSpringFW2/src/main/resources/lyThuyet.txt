@@ -1,0 +1,13 @@
+câu 1: solid là 5 quy tắc thiết kế giúp code dễ mở rộng, bảo trì giảm tính phụ thuộc
+giữa các module trong đó:
+S là mỗi class nên có 1 trách nhiệm
+O là class nên mở để mở rộng nhưng đóng để chỉnh sửa
+L là obj class con có thể thay obj class cha mà hành vi vẫn như cũ
+I là không imp những method mà class không dùng
+D là module cấp cao không phụ thuộc module cấp thấp mà cả 2 phụ thuộc vào interface
+
+câu 2:
+IoC là thay vì chúng ta tự tạo obj thì Spring sẽ tự tạo, quản lý, inject dependency thay
+chúng ta, chúng ta chỉ cần khai báo biến
+DI là obj không tự tạo dependency mà được truyền từ ngoài vào
+cách phổ biến nhất là dùng constructor ngoài ra còn có setter và field injection
